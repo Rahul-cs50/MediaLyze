@@ -607,6 +607,12 @@ Frontend design decision history:
 * Each entry should include the decision, rationale, canonical implementation and catalog references, deprecated selectors or patterns, migration scope, status, and remaining intentional exceptions.
 * Update the entry when the canonical pattern or migration status changes. The history must not keep legacy CSS alive; after migration, retain only identifiers needed to explain intentional exceptions.
 
+### 2026-10-14 — Share compact summary metric pills across page headers
+
+* Decision: Dashboard and Library Detail place icon-and-value metric pills beside their headings, with localized hover explanations. The library path appears in the storage metric tooltip. Collapsed Duplications panels keep the same grid gap before Analyzed files as expanded panels.
+* Canonical references: `SummaryMetrics.tsx`, `.summary-metrics`, `.summary-metric`, the Dashboard and Library Detail header examples in `/ui-elements`, and the statistic layout grid in `medialyze.css`.
+* Migration: dashboard summary cards and library-local metric markup now use the shared component; retired `.library-statistic-metric*` selectors and the collapsed-only Analyzed files margin. The existing `StatCard` remains in use on Series Detail. Status: active.
+
 ### 2026-10-02 — Compact table scores and left-aligned media groups
 
 * Decision: table quality scores show a colored numerator with a neutral `/10`, without a meter or a user-facing meter toggle. Series and season buttons align left, inherit file-name font size, and center labels vertically beside the chevron.
