@@ -1171,6 +1171,8 @@ Current repository layout includes:
 * `docker/env.example`
 * `docker/entrypoint.sh`
 
+The Docker runtime installs Python dependencies from `uv.lock`; keep it synchronized with `pyproject.toml`.
+
 Hardware portability invariant:
 
 * `docker/docker-compose.yaml` is the one CPU-safe Compose definition for all

@@ -60,9 +60,10 @@ RUN set -eux; \
     rm -f "${ffmpeg_package}"; \
     rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml ./
-RUN python -c 'import tomllib; print("\n".join(tomllib.load(open("pyproject.toml", "rb"))["project"]["dependencies"]))' \
-    > /tmp/runtime-requirements.txt \
+COPY pyproject.toml uv.lock ./
+RUN --mount=from=ghcr.io/astral-sh/uv:0.13.1,source=/uv,target=/bin/uv \
+    uv export --locked --no-dev --no-emit-project --format requirements.txt \
+        --output-file /tmp/runtime-requirements.txt \
     && pip install --no-cache-dir -r /tmp/runtime-requirements.txt \
     && rm /tmp/runtime-requirements.txt
 

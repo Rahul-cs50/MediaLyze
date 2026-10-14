@@ -41,6 +41,30 @@ def test_frontend_html_is_revalidated_but_hashed_assets_are_immutable(tmp_path: 
     assert asset_response.headers["cache-control"] == "public, max-age=31536000, immutable"
 
 
+def test_static_assets_work_when_gzip_is_accepted(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("CONFIG_PATH", str(tmp_path / "global-config"))
+    monkeypatch.setenv("MEDIA_ROOT", str(tmp_path / "global-media"))
+
+    from backend.app.main import create_app
+
+    frontend_dist = _build_frontend_dist(tmp_path)
+    settings = Settings(
+        config_path=tmp_path / "config",
+        media_root=tmp_path / "media",
+        frontend_dist_path=frontend_dist,
+    )
+    client = TestClient(create_app(settings))
+
+    response = client.get(
+        "/assets/index-hash.js",
+        headers={"Accept-Encoding": "gzip"},
+    )
+
+    assert response.status_code == 200
+    assert response.content == b"console.log('ok')"
+    assert "content-encoding" not in response.headers
+
+
 def test_large_responses_are_gzip_compressed(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("CONFIG_PATH", str(tmp_path / "global-config"))
     monkeypatch.setenv("MEDIA_ROOT", str(tmp_path / "global-media"))

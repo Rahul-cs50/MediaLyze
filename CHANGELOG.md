@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🐛 Bug fixes
 
+- Keep non-JSON responses out of gzip buffering and install Docker Python dependencies from `uv.lock`.
 - Detect external subtitle language and region tokens together in either order ([#194](https://github.com/frederikemmer/MediaLyze/issues/194))
 
 ## v0.19.1
