@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## vUnreleased
 
+### 🐛 Bug fixes
+
+- Detect external subtitle language and region tokens together in either order ([#194](https://github.com/frederikemmer/MediaLyze/issues/194))
+
 ## v0.19.1
 
 This patch release fixes the Windows desktop startup failure and improves reliability when scanning large libraries and transcoding. It also adds history filters, reduces history storage, and updates vulnerable dependencies.

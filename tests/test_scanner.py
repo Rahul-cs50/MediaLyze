@@ -888,7 +888,7 @@ def test_incremental_scan_reanalyzes_unchanged_files_when_external_subtitles_cha
                     "weight": 10,
                     "mode": "partial",
                     "audio_languages": [],
-                    "subtitle_languages": ["en"],
+                    "subtitle_languages": ["pt-BR"],
                 }
             },
         )
@@ -904,7 +904,7 @@ def test_incremental_scan_reanalyzes_unchanged_files_when_external_subtitles_cha
         first_last_analyzed_at = first_media_file.last_analyzed_at
         first_quality_score = first_media_file.quality_score
 
-        (media_dir / "movie.en.srt").write_text("subtitle")
+        (media_dir / "movie.BR.pt.srt").write_text("subtitle")
 
         second_job = run_scan(db, settings, library.id, "incremental")
         second_files_scanned = second_job.files_scanned
@@ -916,7 +916,23 @@ def test_incremental_scan_reanalyzes_unchanged_files_when_external_subtitles_cha
                 ExternalSubtitle.media_file_id == first_media_file.id
             )
         ).all()
+        second_scan_subtitle_values = [
+            (subtitle.path, subtitle.language, subtitle.format)
+            for subtitle in external_subtitles
+        ]
         statistics = get_library_statistics(db, library.id)
+
+        # Simulate the value stored by the old parser and verify that an
+        # incremental scan repairs it even though the sidecar path is unchanged.
+        external_subtitles[0].language = "br"
+        db.commit()
+        correction_job = run_scan(db, settings, library.id, "incremental")
+        corrected_external_subtitles = db.scalars(
+            select(ExternalSubtitle).where(
+                ExternalSubtitle.media_file_id == first_media_file.id
+            )
+        ).all()
+        corrected_statistics = get_library_statistics(db, library.id)
 
     assert first_files_scanned == 1
     assert second_files_scanned == 1
@@ -925,12 +941,19 @@ def test_incremental_scan_reanalyzes_unchanged_files_when_external_subtitles_cha
     assert refreshed.last_analyzed_at is not None
     assert refreshed.last_analyzed_at != first_last_analyzed_at
     assert refreshed.quality_score > first_quality_score
-    assert [(subtitle.path, subtitle.language, subtitle.format) for subtitle in external_subtitles] == [
-        ("movie.en.srt", "en", "srt")
+    assert second_scan_subtitle_values == [
+        ("movie.BR.pt.srt", "pt-BR", "srt")
     ]
     assert statistics is not None
-    assert {item.label: item.value for item in statistics.subtitle_language_distribution} == {"en": 1}
+    assert {item.label: item.value for item in statistics.subtitle_language_distribution} == {"pt": 1}
     assert {item.label: item.value for item in statistics.subtitle_source_distribution} == {"external": 1}
+    assert correction_job.files_scanned == 1
+    assert correction_job.scan_summary["changes"]["modified_files"]["count"] == 1
+    assert [(subtitle.path, subtitle.language, subtitle.format) for subtitle in corrected_external_subtitles] == [
+        ("movie.BR.pt.srt", "pt-BR", "srt")
+    ]
+    assert corrected_statistics is not None
+    assert {item.label: item.value for item in corrected_statistics.subtitle_language_distribution} == {"pt": 1}
 
 
 def test_run_scan_persists_audio_profile_and_spatial_audio_profile(tmp_path: Path, monkeypatch) -> None:

@@ -148,6 +148,14 @@ Transcoding stream language codes are configured together for video, audio, and 
 
 Supported sidecar extensions are `.srt`, `.ass`, `.ssa`, `.sub`, and `.idx`.
 
+Sidecar filenames can provide a language tag as a suffix. Adjacent recognized
+language and BCP 47 region subtags are combined in either order, so
+`Movie.BR.pt.srt` and `Movie.pt.BR.srt` are both recorded as `pt-BR`. Existing
+hyphenated or underscored tags such as `pt-BR` and `pt_BR` remain supported.
+When a two-letter token is also a language code, its uppercase spelling marks
+it as a region. If a token pair is still ambiguous, detection keeps the existing
+first-recognized language behavior instead of guessing.
+
 ## 4) Statistics, Panels, And Tables
 
 ### 4.1 Library and dashboard statistic support

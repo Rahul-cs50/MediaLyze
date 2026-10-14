@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from backend.app.services.subtitles import detect_external_subtitles
+from backend.app.services.subtitles import detect_external_subtitles, detect_external_subtitles_from_names
 
 
 def test_detect_external_subtitles_matches_sibling_files(tmp_path: Path) -> None:
@@ -40,3 +40,39 @@ def test_sidecar_detection_does_not_inspect_unrelated_unreadable_files(tmp_path,
     assert detect_external_subtitles(video, (".srt",)) == [
         {"path": "movie.en.srt", "language": "en", "format": "srt"},
     ]
+
+
+def test_sidecar_language_detection_combines_region_and_language_tokens() -> None:
+    video = Path("movie.mkv")
+    names = [
+        "movie.BR.pt.srt",
+        "movie.pt.BR.srt",
+        "movie.MX.es.srt",
+        "movie.es.MX.srt",
+        "movie.pt-BR.srt",
+        "movie.pt_BR.srt",
+    ]
+
+    subtitles = detect_external_subtitles_from_names(video, names, (".srt",))
+
+    assert {item["path"]: item["language"] for item in subtitles} == {
+        "movie.BR.pt.srt": "pt-BR",
+        "movie.pt.BR.srt": "pt-BR",
+        "movie.MX.es.srt": "es-MX",
+        "movie.es.MX.srt": "es-MX",
+        "movie.pt-BR.srt": "pt-BR",
+        "movie.pt_BR.srt": "pt-BR",
+    }
+
+
+def test_sidecar_language_detection_avoids_ambiguous_or_non_region_tokens() -> None:
+    video = Path("movie.mkv")
+    names = ["movie.br.pt.srt", "movie.BR.PT.srt", "movie.en.hi.srt"]
+
+    subtitles = detect_external_subtitles_from_names(video, names, (".srt",))
+
+    assert {item["path"]: item["language"] for item in subtitles} == {
+        "movie.br.pt.srt": "br",
+        "movie.BR.PT.srt": "br",
+        "movie.en.hi.srt": "en",
+    }
