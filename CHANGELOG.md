@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### 🐛 Bug fixes
 
 - Show dashboard and library summary metrics beside their headings as shared compact icon pills with localized explanations; include the library path in its storage tooltip.
+- Reduce vertical padding around the Library Detail title and summary metrics.
 - Keep the panel gap consistent when Duplications is collapsed.
 - Left-align file comparison search results and their text.
 - Keep non-JSON responses out of gzip buffering and install Docker Python dependencies from `uv.lock`.
