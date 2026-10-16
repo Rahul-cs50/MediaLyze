@@ -340,7 +340,10 @@ ass
 ssa
 sub
 idx
+vtt
 ```
+
+VTT sidecars retain `vtt` as their stored format; compatibility checks treat `vtt` and `webvtt` as equivalent.
 
 Stored fields include:
 

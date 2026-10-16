@@ -235,7 +235,7 @@ stop_frontend
 stop_backend
 
 cd "$ROOT_DIR"
-nohup "$VENV_PYTHON" -m uvicorn backend.app.main:app --reload --host "$BACKEND_HOST" --port "$BACKEND_PORT" --log-level error --no-access-log \
+nohup "$VENV_PYTHON" -m uvicorn backend.app.main:app --reload --host "$BACKEND_HOST" --port "$BACKEND_PORT" --ws websockets-sansio --log-level error --no-access-log \
   >"$BACKEND_LOG" 2>&1 &
 API_PID=$!
 echo "$API_PID" > "$BACKEND_PID_FILE"

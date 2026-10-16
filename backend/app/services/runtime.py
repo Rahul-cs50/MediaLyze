@@ -716,6 +716,7 @@ class ScanRuntimeManager:
                     create_federation_app(self.settings, runtime=self),
                     host=self.settings.federation_host,
                     port=int(self.settings.federation_port),
+                    ws="websockets-sansio",
                     log_level="warning",
                     access_log=False,
                 )

@@ -19,6 +19,7 @@ VIDEO_EXTENSIONS = (
     ".ts",
     ".m2ts",
     ".wmv",
+    ".webm",
 )
 
 AUDIO_EXTENSIONS = (
@@ -218,7 +219,7 @@ class Settings(BaseSettings):
         validation_alias="MEDIALYZE_FEDERATION_REQUEST_TIMEOUT_SECONDS",
     )
     allowed_media_extensions: tuple[str, ...] = VIDEO_EXTENSIONS
-    subtitle_extensions: tuple[str, ...] = (".srt", ".ass", ".ssa", ".sub", ".idx")
+    subtitle_extensions: tuple[str, ...] = (".srt", ".ass", ".ssa", ".sub", ".idx", ".vtt")
 
     @model_validator(mode="after")
     def apply_runtime_defaults(self) -> "Settings":

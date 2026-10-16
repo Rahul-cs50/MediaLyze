@@ -6,6 +6,7 @@ from threading import Thread
 from datetime import UTC, datetime
 
 import pytest
+import httpx
 from sqlalchemy import create_engine, select, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -97,6 +98,12 @@ def test_federation_listener_starts_on_distinct_port() -> None:
             "port": port,
             "error": None,
         }
+        response = httpx.get(f"http://127.0.0.1:{port}/openapi.json", timeout=5, trust_env=False)
+        assert response.status_code == 200
+        assert response.json()["info"]["title"] == "MediaLyze Transcode Federation Protocol"
+        assert httpx.get(
+            f"http://127.0.0.1:{port}/missing", timeout=5, trust_env=False,
+        ).status_code == 404
     finally:
         runtime._stop_federation_protocol_server()
 

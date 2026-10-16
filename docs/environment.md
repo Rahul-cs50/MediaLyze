@@ -71,7 +71,7 @@ services:
 | `TELEMETRY_TIMEOUT_SECONDS` | `2` | Timeout for the optional telemetry request. |
 | `ALLOWED_MEDIA_EXTENSIONS` | built-in video extensions | Legacy/general settings allow-list. Current type-aware scans use the `VIDEO_EXTENSIONS` and `AUDIO_EXTENSIONS` constants via `get_allowed_media_extensions`; this variable does not override those per-type sets. See [discovery rules](patterns.md). |
 | `MEDIALYZE_PERFORMANCE_METRICS` | `false` | Enables bounded, in-process API/SQL/cache/queue measurements and `/api/performance`. This is local diagnostic data, separate from opt-in telemetry. |
-| `SUBTITLE_EXTENSIONS` | `.srt`, `.ass`, `.ssa`, `.sub`, `.idx` | Advanced JSON array override for recognized sidecar subtitle extensions. |
+| `SUBTITLE_EXTENSIONS` | `.srt`, `.ass`, `.ssa`, `.sub`, `.idx`, `.vtt` | Advanced JSON array override for recognized sidecar subtitle extensions. |
 | `TZ` | image/host timezone | Process and scheduler timezone, for example `Europe/Berlin`. |
 
 `CONFIG_PATH` contains production state. Do not point it at a temporary or

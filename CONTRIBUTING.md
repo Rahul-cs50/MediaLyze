@@ -29,6 +29,8 @@ Review `.env` and the [environment guide](docs/environment.md) before starting; 
 Run checks appropriate to the changed behavior, using isolated writable paths rather than production state:
 
 ```bash
+# Install locked runtime and test dependencies (including Starlette's httpx2 test client).
+uv sync --locked --extra dev
 # Backend; paths must be dedicated disposable test directories.
 CONFIG_PATH=/tmp/medialyze-test-config MEDIA_ROOT=/tmp/medialyze-test-media .venv/bin/python -m pytest
 # Frontend, from the repository root.

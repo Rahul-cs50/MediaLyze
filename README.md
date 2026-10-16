@@ -176,7 +176,7 @@ For a single-command local dev setup, use `scripts/dev-local.sh` on macOS/Linux 
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
-CONFIG_PATH="$PWD/.local/config" MEDIA_ROOT="$PWD/media" uvicorn backend.app.main:app --reload --port 8080
+CONFIG_PATH="$PWD/.local/config" MEDIA_ROOT="$PWD/media" uvicorn backend.app.main:app --reload --port 8080 --ws websockets-sansio
 ```
 
 ### Frontend

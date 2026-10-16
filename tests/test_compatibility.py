@@ -246,6 +246,36 @@ def test_official_apple_tv_profiles_include_common_subtitle_formats() -> None:
         assert {key for key, value in subtitles.items() if value == "limited"} >= expected_limited
 
 
+@pytest.mark.parametrize(("stored_format", "profile_format"), [("vtt", "webvtt"), ("webvtt", "vtt")])
+def test_vtt_and_webvtt_formats_match_profile_capabilities(stored_format: str, profile_format: str) -> None:
+    hardware = _hardware(subtitles={profile_format: True})
+    software = _software(subtitles={profile_format: {"mode": "direct"}})
+    media_file = _file(external_subtitles=[SimpleNamespace(format=stored_format, language="en")])
+
+    result = evaluate_compatibility(media_file, _combination(), hardware, software)
+
+    assert result.subtitle_status == CompatibilityStatus.direct_play
+
+
+def test_vtt_matches_webvtt_compatibility_rules() -> None:
+    hardware = _hardware(subtitles={"webvtt": True})
+    software = _software(
+        subtitles={"webvtt": {"mode": "transcode"}},
+        rules=[
+            {
+                "id": "webvtt-direct",
+                "match": {"subtitle_formats": ["webvtt"]},
+                "mode": "direct",
+            }
+        ],
+    )
+    media_file = _file(external_subtitles=[SimpleNamespace(format="vtt", language="en")])
+
+    result = evaluate_compatibility(media_file, _combination(), hardware, software)
+
+    assert result.subtitle_status == CompatibilityStatus.direct_play
+
+
 def test_official_apple_tv_profiles_include_safe_audio_containers() -> None:
     catalog_root = Path("backend/app/profile_catalog/hardware_profiles")
     expected_audio_containers = {"mp3", "m4a", "m4b", "aac", "aif", "aiff", "wav"}

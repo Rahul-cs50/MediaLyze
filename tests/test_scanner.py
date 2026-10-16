@@ -39,12 +39,131 @@ from backend.app.schemas.quality import QualityBreakdownRead
 from backend.app.services import scanner as scanner_service
 from backend.app.services.library_service import get_library_statistics
 from backend.app.services.duplicates import list_library_duplicate_groups
-from backend.app.services.media_service import get_grouped_library_series_detail, list_grouped_library_files
+from backend.app.services.media_service import get_grouped_library_series_detail, get_media_file_detail, list_grouped_library_files
 from backend.app.services.pattern_recognition import default_pattern_recognition_settings, recognize_media_path
 from backend.app.services.scanner import _iter_media_files
 from backend.app.services.scanner import ScanCanceled
 from backend.app.services.scanner import run_quality_recompute, run_scan
 from backend.app.utils.time import utc_now
+
+
+@pytest.mark.skipif(shutil.which("ffprobe") is None, reason="ffprobe is not installed")
+@pytest.mark.parametrize("scan_type", ["full", "incremental"])
+def test_real_video_scan_persists_pixel_format_bit_depth(tmp_path: Path, scan_type: str) -> None:
+    fixture_dir = Path(__file__).parent / "fixtures" / "video_bit_depth"
+    media_dir = tmp_path / "library"
+    media_dir.mkdir()
+    expected = {
+        "h264_sdr_8bit.mkv": ("h264", "yuv420p", 8, None),
+        "hevc_hdr10_10bit.mkv": ("hevc", "yuv420p10le", 10, "HDR10"),
+        "vp9_sdr_10bit.mkv": ("vp9", "yuv420p10le", 10, None),
+    }
+    for filename in expected:
+        shutil.copyfile(fixture_dir / filename, media_dir / filename)
+
+    settings = Settings(
+        config_path=tmp_path / "config", media_root=tmp_path,
+        ffprobe_path=shutil.which("ffprobe"),
+    )
+    engine = create_engine(f"sqlite:///{tmp_path / 'scan.db'}")
+    Base.metadata.create_all(engine)
+    session_factory = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
+    with session_factory() as db:
+        library = Library(name="Videos", path=str(media_dir), type=LibraryType.movies, scan_config={})
+        db.add(library)
+        db.commit()
+        library_id = library.id
+        job = run_scan(db, settings, library_id, scan_type)
+        assert job.status == JobStatus.completed
+        assert job.files_scanned == 3
+        assert job.errors == 0
+
+    # Read through a new session and the detail service, rather than checking
+    # only the normalizer's in-memory result. No ffprobe mocking is involved.
+    with session_factory() as db:
+        files = db.scalars(select(MediaFile).order_by(MediaFile.filename)).all()
+        assert len(files) == 3
+        for media_file in files:
+            codec, pixel_format, bit_depth, hdr_type = expected[media_file.filename]
+            detail = get_media_file_detail(db, media_file.id)
+            assert detail is not None
+            assert media_file.scan_status == ScanStatus.ready
+            assert len(detail.video_streams) == 1
+            stream = detail.video_streams[0]
+            assert (stream.codec, stream.pix_fmt, stream.bit_depth, stream.hdr_type) == (
+                codec, pixel_format, bit_depth, hdr_type,
+            )
+            assert (stream.width, stream.height, stream.frame_rate) == (64, 64, 1)
+            assert detail.audio_streams == []
+            assert detail.subtitle_streams == []
+            # Raw probe data must remain untouched by the fallback.
+            assert detail.raw_ffprobe_json["streams"][0]["pix_fmt"] == pixel_format
+        statistics = get_library_statistics(db, library_id)
+        assert statistics is not None
+        assert {item.label: item.value for item in statistics.video_bit_depth_distribution} == {
+            "10-bit": 2, "8-bit": 1,
+        }
+
+
+@pytest.mark.skipif(shutil.which("ffprobe") is None, reason="ffprobe is not installed")
+def test_real_webm_scan_and_incremental_vtt_sidecar_statistics(tmp_path: Path) -> None:
+    fixture_dir = Path(__file__).parent / "fixtures" / "webm_vtt"
+    media_dir = tmp_path / "library"
+    media_dir.mkdir()
+    video_path = media_dir / "webm_vp9_opus.webm"
+    shutil.copyfile(fixture_dir / video_path.name, video_path)
+
+    settings = Settings(
+        config_path=tmp_path / "config",
+        media_root=tmp_path,
+        ffprobe_path=shutil.which("ffprobe"),
+        ffprobe_worker_count=1,
+    )
+    engine = create_engine(f"sqlite:///{tmp_path / 'webm-vtt.db'}")
+    Base.metadata.create_all(engine)
+    session_factory = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
+
+    with session_factory() as db:
+        library = Library(name="WebM", path=str(media_dir), type=LibraryType.movies, scan_config={})
+        db.add(library)
+        db.commit()
+        library_id = library.id
+
+        first_job = run_scan(db, settings, library_id, "incremental")
+        assert first_job.status == JobStatus.completed
+        assert first_job.files_scanned == 1
+        assert first_job.errors == 0
+
+        media_file = db.scalar(select(MediaFile).where(MediaFile.library_id == library_id))
+        assert media_file is not None
+        assert media_file.extension == "webm"
+        initial_detail = get_media_file_detail(db, media_file.id)
+        assert initial_detail is not None
+        assert [stream.codec for stream in initial_detail.video_streams] == ["vp9"]
+        assert [stream.codec for stream in initial_detail.audio_streams] == ["opus"]
+        assert initial_detail.external_subtitles == []
+
+        subtitle_path = media_dir / "webm_vp9_opus.en.vtt"
+        shutil.copyfile(fixture_dir / subtitle_path.name, subtitle_path)
+        second_job = run_scan(db, settings, library_id, "incremental")
+        assert second_job.status == JobStatus.completed
+        assert second_job.files_scanned == 1
+        assert second_job.errors == 0
+        assert second_job.scan_summary["changes"]["modified_files"]["count"] == 1
+
+        detail = get_media_file_detail(db, media_file.id)
+        assert detail is not None
+        assert [(subtitle.path, subtitle.language, subtitle.format) for subtitle in detail.external_subtitles] == [
+            ("webm_vp9_opus.en.vtt", "en", "vtt"),
+        ]
+        statistics = get_library_statistics(db, library_id)
+
+    assert statistics is not None
+    assert {item.label: item.value for item in statistics.video_codec_distribution} == {"vp9": 1}
+    assert {item.label: item.value for item in statistics.audio_codec_distribution} == {"opus": 1}
+    assert {item.label: item.value for item in statistics.subtitle_codec_distribution} == {"vtt": 1}
+    assert {item.label: item.value for item in statistics.subtitle_language_distribution} == {"en": 1}
+    assert {item.label: item.value for item in statistics.subtitle_source_distribution} == {"external": 1}
 
 
 @pytest.mark.skipif(shutil.which("ffprobe") is None, reason="ffprobe is not installed")

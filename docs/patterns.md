@@ -73,8 +73,8 @@ Legacy libraries created with `scan_config.selected_paths` are migrated to `libr
 
 | Library Type | Discovered Extensions |
 |---|---|
-| `movies` | `.mkv`, `.mp4`, `.avi`, `.mov`, `.m4v`, `.ts`, `.m2ts`, `.wmv` |
-| `series` | `.mkv`, `.mp4`, `.avi`, `.mov`, `.m4v`, `.ts`, `.m2ts`, `.wmv` |
+| `movies` | `.mkv`, `.mp4`, `.avi`, `.mov`, `.m4v`, `.ts`, `.m2ts`, `.wmv`, `.webm` |
+| `series` | `.mkv`, `.mp4`, `.avi`, `.mov`, `.m4v`, `.ts`, `.m2ts`, `.wmv`, `.webm` |
 | `music` | `.mp3`, `.flac`, `.m4b`, `.m4a`, `.aac`, `.aa`, `.aax`, `.ogg`, `.oga`, `.opus`, `.wav`, `.wma`, `.aiff`, `.aif`, `.alac`, `.mka`, `.ape` |
 | `audiobooks` | the same audio extensions as `music`; includes chapter and audiobook-tag analysis |
 | `mixed` | all video + all audio extensions above |

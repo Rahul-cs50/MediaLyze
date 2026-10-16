@@ -213,7 +213,7 @@ try {
     $quotedBackendLog = $BackendLog.Replace("'", "''")
     $backendCommand = @"
 Set-Location -LiteralPath '$quotedRootDir'
-& '$quotedPythonExe' -m uvicorn backend.app.main:app --reload --host '$BackendHost' --port '$BackendPort' --log-level error --no-access-log *> '$quotedBackendLog'
+& '$quotedPythonExe' -m uvicorn backend.app.main:app --reload --host '$BackendHost' --port '$BackendPort' --ws websockets-sansio --log-level error --no-access-log *> '$quotedBackendLog'
 "@
 
     $backendProcess = Start-Process `
