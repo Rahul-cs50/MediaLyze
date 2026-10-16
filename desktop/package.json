@@ -8,7 +8,7 @@
   "main": "main.cjs",
   "scripts": {
     "dev": "electron .",
-    "test": "node --test ./ffprobe-paths.test.cjs ./update-download.test.cjs ./package.test.cjs ./scripts/build-backend.test.mjs",
+    "test": "node --test ./ffprobe-paths.test.cjs ./update-download.test.cjs ./package.test.cjs ./scripts/build-backend.test.mjs ./scripts/smoke-test-backend.test.mjs",
     "generate:icons": "node ./scripts/generate-icons.mjs",
     "dist": "npm run generate:icons && electron-builder",
     "dist:dir": "npm run generate:icons && electron-builder --dir",
@@ -75,7 +75,7 @@
     "fast-uri": "4.1.5",
     "@xmldom/xmldom": "0.8.15",
     "js-yaml": "4.3.2",
-    "sharp": "0.35.4",
+    "sharp": "0.35.5",
     "tmp": "^0.2.7",
     "undici@^6": "^6.28.1",
     "undici@^7": "^7.29.1",

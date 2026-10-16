@@ -1,4 +1,5 @@
 name: build desktop artifacts
+run-name: desktop ${{ inputs.build_type || 'release' }} ${{ inputs.tag_name || github.event.release.tag_name || github.ref_name }} ${{ inputs.platform || 'all' }} ${{ inputs.dispatch_id }}
 
 on:
   release:
@@ -21,6 +22,20 @@ on:
         description: Optional Git ref to build. Dev builds default to the selected workflow branch; release builds default to the tag.
         required: false
         type: string
+      dispatch_id:
+        description: Internal identifier used by the main release workflow to track this build.
+        required: false
+        type: string
+      platform:
+        description: Build all desktop platforms or only one platform (useful for release recovery).
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - linux
+          - macos
+          - windows
 
 permissions:
   contents: write
@@ -35,16 +50,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - artifact_suffix: linux
-            asset: dist/desktop-app/MediaLyze.AppImage
-            os: ubuntu-latest
-          - artifact_suffix: macos
-            asset: dist/desktop-app/MediaLyze-arm64.dmg
-            os: macos-latest
-          - artifact_suffix: windows
-            asset: dist/desktop-app/MediaLyze.Setup.exe
-            os: windows-latest
+        include: ${{ fromJSON(inputs.platform == 'windows' && '[{"artifact_suffix":"windows","asset":"dist/desktop-app/MediaLyze.Setup.exe","os":"windows-latest"}]' || inputs.platform == 'macos' && '[{"artifact_suffix":"macos","asset":"dist/desktop-app/MediaLyze-arm64.dmg","os":"macos-latest"}]' || inputs.platform == 'linux' && '[{"artifact_suffix":"linux","asset":"dist/desktop-app/MediaLyze.AppImage","os":"ubuntu-latest"}]' || '[{"artifact_suffix":"linux","asset":"dist/desktop-app/MediaLyze.AppImage","os":"ubuntu-latest"},{"artifact_suffix":"macos","asset":"dist/desktop-app/MediaLyze-arm64.dmg","os":"macos-latest"},{"artifact_suffix":"windows","asset":"dist/desktop-app/MediaLyze.Setup.exe","os":"windows-latest"}]') }}
 
     steps:
       - name: Validate build request
