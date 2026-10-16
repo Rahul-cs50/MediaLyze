@@ -86,7 +86,7 @@ The `/transcoding` page separates Active jobs from History, with library/status/
 
 File Detail exposes linked versions below Preview, including separate `Transcode_Output` files, with left/right version selection when several versions exist. `VideoWipeCompare` synchronizes playback, seeking, volume, and mute state and provides a keyboard-operable wipe slider. The `/files/{file_id}/preview?compare={variant_id}` route remains available; metadata comparison uses `/files/compare?left={id}&right={id}`. Preview warns about duration differences and browser playback failures. Playback is an experimental inspection aid and depends on browser codec support.
 
-Federation and automatic rules are retained in the backend but hidden in the shipped frontend by `release-visibility.ts`. Their contract, enablement gates, and API are documented in [internal implementation notes](internal/unreleased-transcoding.md), rather than presented as available user workflows.
+Direct transcode Federation is retained in the backend but hidden in the shipped frontend by `release-visibility.ts`. Its contract, enablement gates, and API are documented in [internal implementation notes](internal/unreleased-transcoding.md), rather than presented as an available user workflow.
 
 ## Runtime paths
 

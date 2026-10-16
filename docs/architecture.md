@@ -18,7 +18,6 @@ Scan jobs are persisted and scheduled through `ScanRuntimeManager`, with indepen
 
 - The UI is a React SPA built with Vite, with lazily loaded routes, languages, and modular chart resources.
 - Main routes are `/`, `/settings`, `/libraries/:libraryId`, `/files/:fileId`, `/files/:fileId/preview`, `/files/compare`, `/storage-map`, and `/transcoding`. The development-only `/ui-elements` catalog is the visual reference.
-- `frontend/src/lib/release-visibility.ts` hides Federation and automation-rule UI while preserving their backend implementation.
 - Routing is client-side; the backend serves `index.html` for deep links.
 - `frontend/globals.css` provides the design language, extended by `frontend/src/medialyze.css`.
 
@@ -39,17 +38,6 @@ Scan jobs are persisted and scheduled through `ScanRuntimeManager`, with indepen
 6. Reconciliation attaches the resulting `MediaFile` to the durable `TranscodeVariantGroup`, while same-directory variants are excluded from primary queries and later scans. Pruning job history never deletes output media or variant relationships.
 
 The complete contract, safety invariants, profiles, and API are documented in [Transcoding](transcoding.md).
-
-Federation is retained implementation hidden by the current frontend release switches; it is not a shipped UI workflow. Backend activation also requires the persisted opt-in and process gate. See [internal notes](internal/unreleased-transcoding.md). It extends that flow without changing ownership of local media. The origin installation owns the user-facing `TranscodeJob`, source
-snapshot, output publication, variant relationship, and follow-up analysis.
-It selects a directly paired worker from the worker's persisted capabilities,
-resource state, and measured network estimate, then sends a versioned,
-authenticated/encrypted assignment and resumable chunks. The worker stores
-only a connection-scoped remote attempt and isolated temporary files, leases a
-local CPU/GPU slot, validates the structured plan against its own FFmpeg
-probe, and returns a hash-verified result. Heartbeat expiry and persisted
-attempt/transfer/chunk state make interruption resumable while keeping scans,
-normal library rows, and local transcode slots independent.
 
 ## Connector data flow
 

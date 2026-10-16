@@ -43,7 +43,7 @@ These references describe the current repository implementation on `dev`, review
 | [Desktop builds](build_desktop.md) | OS-specific local packaging and bundled FFmpeg/ffprobe verification. |
 | [GitHub Actions](github_actions.md) | Development/release publication, manual inputs, versions, artifacts, caches, and recovery. |
 | [Adding languages](adding-languages.md) | Translation keys, lazy language loading, persistence, selectors, and validation. |
-| [Design QA](design-qa.md) | Current shared UI patterns and verification guidance; `/ui-elements` is the visual catalog. |
+| [Visual QA guide](design-qa.md) | Internal checklist for frontend changes: current pattern references and states to recheck; `/ui-elements` is the visual catalog. |
 | [Benchmarks](benchmarks.md) | Reproducible synthetic workloads, scripts, measurement limits, and reports. |
 
 ## Plans, internal features, and historical evidence
@@ -51,7 +51,8 @@ These references describe the current repository implementation on `dev`, review
 These documents have a different status from current user instructions:
 
 - [Connector UI roadmap](connector-ui-deferred.md): remaining diagnostics and provider work; distinguishes already restored assignment/mapping UI from backlog. Plex is still disabled.
-- [Unreleased transcoding notes](internal/unreleased-transcoding.md): retained automation-rule and Federation implementations hidden by the frontend release switches. UI visibility does not disable backend APIs; Federation also requires persisted opt-in and its process gate.
+- [Unreleased transcoding Federation notes](internal/unreleased-transcoding.md): retained Federation implementation hidden by the frontend release switch. UI visibility does not disable its backend API; Federation also requires persisted opt-in and its process gate.
+- [Unreleased transcoding automation notes](internal/unreleased_transcoding_automation.md): retained rule and inventory implementation hidden by the frontend release switch. UI visibility does not disable its API or scan-triggered automation.
 - [Performance implementation plan](performance-plan.md): completed plan from 2026-10-01, including deliberately deferred extensions.
 - [Raw benchmark results](benchmarks/results/): Historical JSON measurements with recorded environment metadata where available. Old test counts are not current-suite claims.
 - [Changelog](../CHANGELOG.md): release notes and accumulated `vUnreleased` work. Consult GitHub releases for publication chronology.

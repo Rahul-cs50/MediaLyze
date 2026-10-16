@@ -4,10 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## vUnreleased
 
-### 🐛 Bug fixes
-
-- Match the dashboard statistics header height to the library header.
-
 ## v0.19.2
 
 This patch release expands video and subtitle recognition, improves metadata parsing, and resolves several dashboard, library, and file comparison issues.
@@ -22,7 +18,7 @@ This patch release expands video and subtitle recognition, improves metadata par
 - Detect video bit depth from known pixel formats when ffprobe omits a valid sample-depth value ([#195](https://github.com/frederikemmer/MediaLyze/issues/195)).
 - Detect external subtitle language and region tokens together in either order ([#194](https://github.com/frederikemmer/MediaLyze/issues/194)).
 - Fix server response errors when serving non-JSON content.
-- Improve library panel spacing and file comparison search-result alignment.
+- Improve panel spacing and file comparison search-result alignment.
 
 ## v0.19.1
 

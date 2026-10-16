@@ -106,8 +106,6 @@ device access are prepared for that user/group. When `/dev/dri` is mounted,
 the entrypoint preserves the supplementary device groups supplied by
 `group_add` while dropping to the configured user.
 
-Federation process settings are documented in the [internal unreleased-feature reference](internal/unreleased-transcoding.md#federation-settings). Federation and automation rules are currently hidden by the frontend release switches; that visibility does not disable retained backend APIs.
-
 ## Desktop-specific process variables
 
 The Electron desktop launcher sets `MEDIALYZE_RUNTIME=desktop`, `APP_HOST`,

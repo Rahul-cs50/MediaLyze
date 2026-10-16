@@ -1,20 +1,31 @@
-# Unreleased transcoding implementation notes
+# Unreleased transcoding Federation implementation notes
 
 [Documentation home](../README.md)
 
-Status: Federation and automatic rules are currently hidden in the shipped frontend; saved presets and local transcoding remain available. Hiding these controls does not disable their backend routes or runtime. Federation additionally requires persisted opt-in and the process-level gate below.
+Status: Direct transcode Federation is currently hidden in the shipped frontend; saved presets and local transcoding remain available. Hiding Federation does not disable its backend routes or runtime. It additionally requires persisted opt-in and the process-level gate below.
 
-To expose these features in a later release, set the corresponding switches in
-`frontend/src/lib/release-visibility.ts` to `true`, restore the relevant public
+To expose Federation in a later release, set its switch in
+`frontend/src/lib/release-visibility.ts` to `true`, restore its public
 documentation and Docker port examples from this file, and run the existing
-frontend and backend test suites. The API, runtime, translations, and UI
-implementations remain in the repository.
+frontend and backend test suites. Its API, runtime, translations, and UI
+implementation remain in the repository.
 
-Automatic rules are disabled when created. Each rule has an explicit library selection, a priority, a preset, an output mode, and a safe optional output subfolder. Conditions reuse the analyzed-file dimensions used by the file search (including path/name, size, duration, quality, bitrate, codecs, resolution, HDR, audio/subtitle languages and codecs, and stream properties) and can be nested with `AND` or `OR`. Active rules are evaluated in priority order; the first matching rule wins. A winning rule that is blocked by validation, a missing capability, an unsafe target, or missing replacement approval is recorded as blocked and does not fall through to a lower-priority rule.
+## Release promotion checklist
 
-Separate-output jobs use `Transcode_Output` and can optionally use a rule-relative subfolder. The subfolder is normalized and rejected when it is absolute, escapes through `..`, contains a drive/UNC prefix, or contains control/path-separator abuse. Same-directory output and original replacement do not accept a rule subfolder. Replace-original rules are disabled until the current rule version is explicitly approved; changing their match, library, preset, output mode, or subfolder revokes approval and cancels queued work. Reordering rules changes their evaluation priority and version while preserving an already approved replacement contract.
+When Federation is approved for a release, promote and verify its user-facing
+documentation alongside the feature:
 
-The management API exposes preset and rule CRUD, rule ordering and replacement approval, a bounded preview, pagewise inventory start/cancel/status, and durable run history. Inventory uses the same source size/mtime and rule/preset version identity for deduplication, records skipped/blocked/completed decisions, and never retries failed work implicitly. A successful, error-free full or incremental scan can enqueue only newly analyzed or changed primary video files for matching rules. Canceled, failed, or partially failed scans do not trigger automation, and automation output variants are not re-enqueued as primary sources. Restart recovery cancels orphaned queued automation work; running transcodes retain their immutable job snapshot and are finalized by the normal job runtime.
+- Add the supported Federation topology, job flow, and runtime ownership to
+  [Architecture](../architecture.md).
+- Move the process settings and host/container port mapping tables below into
+  [Environment](../environment.md), then verify the documented defaults and
+  Compose examples against the shipped configuration.
+- Add the pairing, trusted-member, network, and remote-job workflows and their
+  safety limitations to [Transcoding](../transcoding.md).
+- Update the [documentation home](../README.md) so the released guide is listed
+  with current user documentation; reclassify or remove this internal note.
+- Confirm the release visibility switch, persisted opt-in, API behavior, and
+  documentation examples agree with the released implementation.
 
 ## Direct transcode federation
 

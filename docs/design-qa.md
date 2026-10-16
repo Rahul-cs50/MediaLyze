@@ -1,8 +1,8 @@
-# Design QA: current reference
+# Visual QA guide for frontend changes
 
 [Documentation home](README.md)
 
-This page consolidates the former root `design-qa.md` and this file. It describes the current implementation rather than preserving a sequence of completed visual reviews. The hidden `/ui-elements` route is the canonical visual inventory; the frontend source and tests are authoritative for behavior. The design decisions in `AGENTS.md` record the wider migration history.
+Use this internal guide when changing an existing frontend layout or interaction. It points to the components and `/ui-elements` examples that define the current patterns, and lists the visual and interaction states to recheck after a change. It is not a user guide or a record of a recent full-app audit. The hidden `/ui-elements` route is the visual catalog; frontend source and tests define behavior.
 
 The earlier QA reports referred to local browser captures, `prototypes/` images, and machine-specific ImageGen paths that are not available in this repository. Their historical pass counts and "no findings" conclusions are not claims about the current build. The sections below retain the useful design and interaction checks, reconciled with the current source.
 
@@ -22,21 +22,10 @@ The old reports document two resolved implementation traps: an all-or-nothing la
 
 **Current implementation:** `frontend/src/components/TranscodingPanel.tsx`, `frontend/src/components/TranscodingSettingsPanel.tsx`, `frontend/src/components/TranscodeProfilesRulesPanel.tsx`, their related tests and styles, and the Transcoding examples in `/ui-elements`.
 
-- The workspace uses compact underline tabs for Presets and Accelerators. Rules and Members remain implemented but hidden by the current release switches; internal implementation terminology may still use Profiles. Its heading help is contextual to the selected tab. The capability matrix owns accelerator details rather than duplicating them in the Members view.
+- The workspace uses compact underline tabs for Presets and Accelerators. Its heading help is contextual to the selected tab. The capability matrix owns accelerator details rather than duplicating them elsewhere in the workspace.
 - The transcoding job view keeps status, progress, source-to-target details, and speed history readable at desktop and narrow widths. Table cells retain table layout semantics; content inside cells handles long hardware labels and filenames. Column resizing and links to file details remain available where applicable.
 - Job detail disclosures start in the state defined by the current component, not by the early September screenshots. Verify collapsed and expanded content, status changes, sparse speed samples, and long values against current fixtures before changing those views.
-- Shared controls, spacing, typography, and focus treatment come from `frontend/globals.css`, `frontend/src/medialyze.css`, neighboring pages, and `/ui-elements`. Avoid reviving the former sliding-pill treatment for the automation tabs; it remains intentional for other toggle groups.
-
-## Federation members and pairing
-
-**Release visibility:** retained implementation, hidden in the shipped frontend. Refer to [unreleased implementation notes](internal/unreleased-transcoding.md) before testing or enabling it.
-
-**Current implementation:** `frontend/src/components/TranscodeFederationPanel.tsx`, `frontend/src/components/TranscodingSettingsPanel.tsx`, the relevant styles and tests, the `Federation members tab` example in `/ui-elements`, and the Federation design decision in `AGENTS.md`.
-
-- Trusted members live in the Members tab. The Federation panel holds connection, discovery, local address, and pairing controls. Member rows use the same compact expandable-list language as profiles and rules, with status and quick actions kept visible.
-- Discovered peers ask for a pairing code next to Connect. Manual pairing adds an address field before the code and Connect action. The address and code fields share a compact segmented treatment; the manual plus marker sits outside the group. Missing-code feedback stays on the code segment, including its rounded first-position corners.
-- Local addresses use a flat list with copy actions. Member details show available accelerators with links into the matrix; endpoint and connection-status fields are intentionally absent from that detail view.
-- Recheck focus, `aria-expanded`/`aria-invalid`, empty-code validation, long names/addresses, narrow stacking, and light/dark contrast whenever the pairing controls or rows change. Historical pixel measurements from one browser capture are not a current layout contract.
+- Shared controls, spacing, typography, and focus treatment come from `frontend/globals.css`, `frontend/src/medialyze.css`, neighboring pages, and `/ui-elements`. Avoid reviving the former sliding-pill treatment for these tabs; it remains intentional for other toggle groups.
 
 ## Quality and compatibility profiles
 
