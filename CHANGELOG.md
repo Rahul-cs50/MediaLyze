@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## vUnreleased
 
+### 🐛 Bug fixes
+
+- Match the dashboard statistics header height to the library header.
+
 ## v0.19.2
 
 This patch release expands video and subtitle recognition, improves metadata parsing, and resolves several dashboard, library, and file comparison issues.

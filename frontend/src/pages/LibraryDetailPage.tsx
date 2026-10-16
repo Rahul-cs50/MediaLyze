@@ -3533,7 +3533,7 @@ export function LibraryDetailPage() {
 
   return (
     <>
-      <section className="panel stack statistic-layout-header-panel library-statistic-layout-header-panel">
+      <section className="panel stack statistic-layout-header-panel">
         <div className="panel-title-row panel-title-row-with-actions">
           <div className="panel-title-row library-statistic-title-row">
             <h2>{displayLibrary?.name ?? t("libraryDetail.loading")}</h2>
