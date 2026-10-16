@@ -19,6 +19,20 @@ FFPROBE_TIMEOUT_SECONDS = 120
 FFPROBE_STDOUT_LIMIT_BYTES = 16 * 1024 * 1024
 FFPROBE_STDERR_LIMIT_BYTES = 1024 * 1024
 
+# These names describe 8-bit components, not the total bits per pixel.
+_VIDEO_8_BIT_PIXEL_FORMATS = frozenset({
+    "yuv420p", "yuv422p", "yuv444p", "yuv410p", "yuv411p", "yuv440p",
+    "yuvj420p", "yuvj422p", "yuvj444p", "yuvj440p", "yuvj411p",
+    "yuva420p", "yuva422p", "yuva444p", "nv12", "nv21", "nv16", "nv24", "nv42",
+    "yuyv422", "uyvy422", "yvyu422", "uyyvyy411",
+    "rgb24", "bgr24", "argb", "rgba", "abgr", "bgra", "0rgb", "rgb0", "0bgr", "bgr0",
+    "gbrp", "gbrap", "gray", "gray8", "ya8",
+})
+_VIDEO_PIXEL_FORMAT_DEPTH = re.compile(
+    r"(?:yuv(?:420|422|444|440)p|yuva(?:420|422|444)p|gbrp|gbrap|gray)"
+    r"(9|10|12|14|16)(?:le|be)|p[024](10|12|16)(?:le|be)"
+)
+
 
 def _run_bounded_ffprobe(command: list[str]) -> str:
     # Drain both pipes concurrently; communicate()/capture_output would retain
@@ -100,6 +114,28 @@ def _safe_int(value: Any) -> int | None:
         return int(float(value))
     except (TypeError, ValueError):
         return None
+
+
+def _video_bit_depth(stream: dict[str, Any]) -> int | None:
+    for key in ("bits_per_raw_sample", "bits_per_sample"):
+        bit_depth = _safe_int(stream.get(key))
+        if bit_depth is not None and bit_depth > 0:
+            return bit_depth
+
+    # HEVC/VP9/AV1 often omit the sample-depth fields. Infer only from known
+    # pixel-format families; codec profiles and HDR alone do not prove depth.
+    pixel_format = stream.get("pix_fmt")
+    if not isinstance(pixel_format, str):
+        return None
+    pixel_format = pixel_format.strip().lower()
+    if pixel_format in _VIDEO_8_BIT_PIXEL_FORMATS:
+        return 8
+    match = _VIDEO_PIXEL_FORMAT_DEPTH.fullmatch(pixel_format)
+    if match:
+        return int(match.group(1) or match.group(2))
+    if re.fullmatch(r"(?:rgb48|bgr48|rgba64|bgra64|ya16)(?:le|be)", pixel_format):
+        return 16
+    return None
 
 
 def _safe_float(value: Any) -> float | None:
@@ -609,7 +645,7 @@ def normalize_ffprobe_payload(payload: dict[str, Any]) -> ProbeResult:
                     color_primaries=stream.get("color_primaries"),
                     frame_rate=_parse_frame_rate(stream.get("avg_frame_rate") or stream.get("r_frame_rate")),
                     bit_rate=_safe_int(stream.get("bit_rate")),
-                    bit_depth=_safe_int(stream.get("bits_per_raw_sample") or stream.get("bits_per_sample")),
+                    bit_depth=_video_bit_depth(stream),
                     hdr_type=_hdr_type(stream),
                     language=_stream_language(stream.get("tags") or {}),
                 )

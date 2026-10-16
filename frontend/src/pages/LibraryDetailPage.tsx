@@ -2,9 +2,13 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   ChevronDown,
   ChevronRight,
+  Clock3,
   EyeOff,
+  Files,
   FileText,
+  HardDrive,
   Hash,
+  History,
   Layers3,
   PanelBottomClose,
   PanelLeftClose,
@@ -44,11 +48,11 @@ import { LibraryHistoryPanel, readHistoryRangeSelection } from "../components/Li
 import { JellyfinIcon } from "../components/JellyfinIcon";
 import { LoaderPinwheelIcon } from "../components/LoaderPinwheelIcon";
 import { SettingsIcon } from "../components/SettingsIcon";
-import { StatCard } from "../components/StatCard";
 import { StatisticPanelLayoutControls } from "../components/StatisticPanelLayoutControls";
 import { StatisticPanelLayoutMigrationNotice } from "../components/StatisticPanelLayoutMigrationNotice";
 import { StreamDetailsList } from "../components/StreamDetailsList";
 import { SlidingTogglePill } from "../components/SlidingTogglePill";
+import { SummaryMetrics } from "../components/SummaryMetrics";
 import { TableViewSettingsEditor } from "../components/TableViewSettingsEditor";
 import { TableQualityScore } from "../components/TableQualityScore";
 import { TooltipTrigger } from "../components/TooltipTrigger";
@@ -3493,9 +3497,43 @@ export function LibraryDetailPage() {
     );
   }
 
+  const libraryMetricItems = [
+    {
+      id: "files",
+      label: t("libraryDetail.files"),
+      description: t("libraryDetail.filesMetricTooltip"),
+      value: String(displayLibrary?.file_count ?? filesTotal ?? 0),
+      Icon: Files,
+    },
+    {
+      id: "storage",
+      label: t("libraryDetail.storage"),
+      description: t("libraryDetail.storageMetricTooltip"),
+      detail: displayLibrary?.path
+        ? t("libraryDetail.libraryPathMetricTooltip", { path: displayLibrary.path })
+        : undefined,
+      value: formatBytes(displayLibrary?.total_size_bytes ?? 0),
+      Icon: HardDrive,
+    },
+    {
+      id: "duration",
+      label: t("libraryDetail.duration"),
+      description: t("libraryDetail.durationMetricTooltip"),
+      value: formatDuration(displayLibrary?.total_duration_seconds ?? 0),
+      Icon: Clock3,
+    },
+    {
+      id: "last-scan",
+      label: t("libraryDetail.lastScan"),
+      description: t("libraryDetail.lastScanMetricTooltip"),
+      value: formatDate(displayLibrary?.last_scan_at ?? null),
+      Icon: History,
+    },
+  ];
+
   return (
     <>
-      <section className="panel stack statistic-layout-header-panel library-statistic-layout-header-panel">
+      <section className="panel stack statistic-layout-header-panel">
         <div className="panel-title-row panel-title-row-with-actions">
           <div className="panel-title-row library-statistic-title-row">
             <h2>{displayLibrary?.name ?? t("libraryDetail.loading")}</h2>
@@ -3517,11 +3555,7 @@ export function LibraryDetailPage() {
                 <JellyfinIcon aria-hidden="true" />
               </TooltipTrigger>
             ) : null}
-            {displayLibrary?.path ? (
-              <TooltipTrigger ariaLabel={t("libraryDetail.libraryPathAria")} content={displayLibrary.path}>
-                ?
-              </TooltipTrigger>
-            ) : null}
+            <SummaryMetrics className="library-statistic-metrics" items={libraryMetricItems} />
             <StatisticPanelLayoutControls
               availableDefinitions={availableStatisticPanelDefinitions}
               isEditing={isEditingStatisticLayout}
@@ -3574,20 +3608,6 @@ export function LibraryDetailPage() {
           </div>
         </div>
         {quickScanError ? <div className="alert">{t("libraryDetail.quickScanError", { message: quickScanError })}</div> : null}
-        <div className="card-grid grid">
-          <StatCard label={t("libraryDetail.files")} value={String(displayLibrary?.file_count ?? filesTotal ?? 0)} />
-          <StatCard
-            label={t("libraryDetail.storage")}
-            value={formatBytes(displayLibrary?.total_size_bytes ?? 0)}
-            tone="teal"
-          />
-          <StatCard
-            label={t("libraryDetail.duration")}
-            value={formatDuration(displayLibrary?.total_duration_seconds ?? 0)}
-            tone="blue"
-          />
-          <StatCard label={t("libraryDetail.lastScan")} value={formatDate(displayLibrary?.last_scan_at ?? null)} />
-        </div>
         {summaryError && !displayLibrary ? <div className="notice">{summaryError}</div> : null}
         <StatisticPanelLayoutMigrationNotice scope="library" issues={statisticLayoutMigrationIssues} />
         {isSummaryLoading && !displayLibrary ? (

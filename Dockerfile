@@ -18,7 +18,7 @@ COPY backend ./backend
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /wheels .
 
 FROM python:3.12-slim-bookworm AS runtime
-ARG APP_VERSION=0.19.1
+ARG APP_VERSION=0.19.2
 ARG TARGETARCH
 ARG FFMPEG_PACKAGE_VERSION=7:5.1.9-0+deb12u1
 ARG FFMPEG_PACKAGE_SHA256_AMD64=2ba8ead87657c123ce6de2de5ecdbc1fb4ead9a4b317b85b8ec41e16c890fe01
@@ -60,9 +60,10 @@ RUN set -eux; \
     rm -f "${ffmpeg_package}"; \
     rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml ./
-RUN python -c 'import tomllib; print("\n".join(tomllib.load(open("pyproject.toml", "rb"))["project"]["dependencies"]))' \
-    > /tmp/runtime-requirements.txt \
+COPY pyproject.toml uv.lock ./
+RUN --mount=from=ghcr.io/astral-sh/uv:0.13.1,source=/uv,target=/bin/uv \
+    uv export --locked --no-dev --no-emit-project --format requirements.txt \
+        --output-file /tmp/runtime-requirements.txt \
     && pip install --no-cache-dir -r /tmp/runtime-requirements.txt \
     && rm /tmp/runtime-requirements.txt
 
@@ -85,4 +86,4 @@ RUN printf '%s\n' "${APP_VERSION}" > /app/.medialyze-version
 EXPOSE 8080 8091/tcp 43211/udp
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-CMD ["sh", "-c", "uvicorn backend.app.main:app --host 0.0.0.0 --port ${APP_PORT}"]
+CMD ["sh", "-c", "uvicorn backend.app.main:app --host 0.0.0.0 --port ${APP_PORT} --ws websockets-sansio"]

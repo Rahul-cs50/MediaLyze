@@ -4,21 +4,25 @@ All notable changes to this project will be documented in this file.
 
 ## vUnreleased
 
-### 🔒 Security
+## v0.19.2
 
-- Update frontend `source-map-js` and desktop `sharp` to patched versions for Dependabot alerts.
+This patch release expands video and subtitle recognition, improves metadata parsing, and resolves several dashboard, library, and file comparison issues.
+
+### ✨ Enhancements
+
+- Show compact dashboard and library summaries beside their headings, with explanatory tooltips.
+- Scan WebM videos and recognize external WebVTT subtitle sidecars, including compatibility checks ([#192](https://github.com/frederikemmer/MediaLyze/issues/192)).
 
 ### 🐛 Bug fixes
 
-- fix Windows desktop release packaging by resolving the backend smoke-test path correctly, propagating desktop build failures to the main release workflow, and allowing single-platform recovery builds ([#188](https://github.com/frederikemmer/MediaLyze/issues/188))
+- Detect video bit depth from known pixel formats when ffprobe omits a valid sample-depth value ([#195](https://github.com/frederikemmer/MediaLyze/issues/195)).
+- Detect external subtitle language and region tokens together in either order ([#194](https://github.com/frederikemmer/MediaLyze/issues/194)).
+- Fix server response errors when serving non-JSON content.
+- Improve panel spacing and file comparison search-result alignment.
 
 ## v0.19.1
 
 This patch release fixes the Windows desktop startup failure and improves reliability when scanning large libraries and transcoding. It also adds history filters, reduces history storage, and updates vulnerable dependencies.
-
-### 🔒 Security
-
-- Update Electron, undici, brace-expansion, and fast-uri to patched versions.
 
 ### ✨ Enhancements
 
@@ -31,6 +35,10 @@ This patch release fixes the Windows desktop startup failure and improves reliab
 - Fix the Windows startup failure by packaging the language registry required by the desktop backend.
 - Improve scan reliability for large libraries and inaccessible files ([#184](https://github.com/frederikemmer/MediaLyze/issues/184)).
 - Fix transcoding issues with codec/device selection and progress reporting, and preserve stream and subtitle updates in file history.
+
+### 🔒 Security
+
+- Update Electron, undici, brace-expansion, and fast-uri to patched versions.
 
 ## v0.19.0
 
@@ -56,13 +64,13 @@ validated plans with stream controls, hardware capability tests, reusable preset
 - **Compact history retention tables** — tighten row spacing and shorten storage forecast headings.
 - **Hardware test progress** — scale live progress to codec work and benchmark frame volume so longer parallel tests keep moving the Test Hardware indicator proportionally.
 
-### 🔒 Security
-
-- Updated dependencies, including AnyIO 4.14.2 for security fixes, and strengthened desktop packaging safeguards.
-
 ### 🐛 Bug fixes
 
 - remove stale, unassigned default profiles copied across media types at startup, while preserving profiles assigned to libraries.
+
+### 🔒 Security
+
+- Updated dependencies, including AnyIO 4.14.2 for security fixes, and strengthened desktop packaging safeguards.
 
 ## v0.18.1
 

@@ -150,6 +150,7 @@ LANGUAGE_ALIASES = {
 _LANGUAGE_TAG_RE = re.compile(r"^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$")
 _REGISTRY = json.loads(Path(__file__).with_name("language_registry.json").read_text(encoding="utf-8"))
 _KNOWN_LANGUAGES = set(_REGISTRY["languages"])
+_KNOWN_REGIONS = set(_REGISTRY.get("regions", []))
 
 # ISO 639-2/B is the bibliographic/media convention used for filename codes.
 ISO_639_1_TO_2_B = {
@@ -263,6 +264,14 @@ def recognized_language_tag(value: str | None) -> str | None:
     if raw_primary not in _KNOWN_LANGUAGES and raw_primary not in _REGISTRY["aliases"]:
         return None
     return normalized
+
+
+def recognized_region_subtag(value: str | None) -> str | None:
+    """Return a registered BCP 47 region subtag in canonical uppercase form."""
+    if value is None:
+        return None
+    candidate = value.strip().upper()
+    return candidate if candidate in _KNOWN_REGIONS else None
 
 
 def format_stream_language_code(value: str | None, format: str, container: str) -> str:

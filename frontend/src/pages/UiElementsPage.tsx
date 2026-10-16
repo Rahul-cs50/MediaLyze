@@ -118,6 +118,7 @@ import { SlidingTogglePill } from "../components/SlidingTogglePill";
 import { SparklesIcon as AnimatedSparklesIcon } from "../components/SparklesIcon";
 import { SquarePenIcon } from "../components/SquarePenIcon";
 import { StatCard } from "../components/StatCard";
+import { SummaryMetrics } from "../components/SummaryMetrics";
 import { StatisticPanelLayoutControls } from "../components/StatisticPanelLayoutControls";
 import { StatisticPanelLayoutMigrationNotice } from "../components/StatisticPanelLayoutMigrationNotice";
 import { StreamDetailsList } from "../components/StreamDetailsList";
@@ -1942,11 +1943,19 @@ export function UiElementsPage() {
               <VariantCard title="Create library from detected Jellyfin catalog" source={`${settings} > Libraries > Add library`} classes={["jellyfin-create-library-options", "jellyfin-create-library-option"]} wide>
                 <section className="jellyfin-create-library-options"><div><h3>Add a detected Jellyfin library</h3><p className="field-hint">Select a catalog, then choose its local media path.</p></div><div className="jellyfin-create-library-option-list"><button type="button" className="jellyfin-create-library-option is-selected" aria-pressed="true"><strong>Archive</strong><span>420 Jellyfin items</span></button><button type="button" className="jellyfin-create-library-option" aria-pressed="false"><strong>Concerts</strong><span>88 Jellyfin items</span></button></div><div className="notice success">The Jellyfin library will be linked automatically after creation.</div></section>
               </VariantCard>
-              <VariantCard title="Jellyfin-linked MediaLyze library" source="LibraryDetailPage" classes={["library-statistic-title-row", "library-jellyfin-icon-trigger", "analyzed-file-name-source-toggle", "analyzed-files-count"]} wide>
+              <VariantCard title="Linked library header with summary metrics" source="LibraryDetailPage" classes={["statistic-layout-header-panel", "library-statistic-title-row", "library-jellyfin-icon-trigger", "library-statistic-metrics", "summary-metric", "summary-metric-files", "summary-metric-storage", "summary-metric-duration", "summary-metric-last-scan", "summary-metric-icon", "summary-metric-value", "summary-metric-tooltip", "summary-metric-tooltip-detail", "library-jellyfin-icon-tooltip", "analyzed-file-name-source-toggle", "analyzed-files-count"]} wide>
                 <div className="stack">
-                  <section className="panel stack statistic-layout-header-panel library-statistic-layout-header-panel">
-                    <div className="panel-title-row library-statistic-title-row"><h2>Movies</h2><TooltipTrigger ariaLabel="Connected to Jellyfin library Movies" className="library-jellyfin-icon-trigger" content={<span className="library-jellyfin-icon-tooltip"><strong>Connected to Jellyfin library Movies</strong><span>Last synchronization: today</span></span>}><JellyfinIcon aria-hidden="true" /></TooltipTrigger><TooltipTrigger ariaLabel="Show library path" content="/media/movies">?</TooltipTrigger></div>
-                    <div className="card-grid grid"><StatCard label="Files" value="248" /><StatCard label="Storage" value="1.2 TB" tone="teal" /><StatCard label="Duration" value="19d 4h" tone="blue" /><StatCard label="Last scan" value="Today" /></div>
+                  <section className="panel stack statistic-layout-header-panel">
+                    <div className="panel-title-row library-statistic-title-row">
+                      <h2>Movies</h2>
+                      <TooltipTrigger ariaLabel="Connected to Jellyfin library Movies" className="library-jellyfin-icon-trigger" content={<span className="library-jellyfin-icon-tooltip"><strong>Connected to Jellyfin library Movies</strong><span>Last synchronization: today</span></span>}><JellyfinIcon aria-hidden="true" /></TooltipTrigger>
+                      <SummaryMetrics className="library-statistic-metrics" items={[
+                        { id: "files", label: "Files", value: "248", description: "Number of analyzed media files in this library.", Icon: Files },
+                        { id: "storage", label: "Storage", value: "1.2 TB", description: "Total size of all media files in this library.", detail: "Library path: /media/movies", Icon: HardDrive },
+                        { id: "duration", label: "Duration", value: "19d 4h", description: "Combined runtime of all media in this library.", Icon: Clock3 },
+                        { id: "last-scan", label: "Last scan", value: "Today", description: "Date and time when this library was last scanned.", Icon: History },
+                      ]} />
+                    </div>
                   </section>
                   <section className="panel">
                     <div className="panel-title-row">
@@ -2282,11 +2291,24 @@ export function UiElementsPage() {
 
           <CatalogSection definition={catalogSections[7]}>
             <VariantGroup title="Statistics and charts">
-              <VariantCard title="Stat cards" source={dashboard} classes={["media-card", "metric-card", "stat-card"]}>
+              <VariantCard title="Dashboard heading with summary metrics" source={dashboard} classes={["dashboard-statistic-title-row", "dashboard-statistic-metrics", "summary-metrics", "summary-metric", "summary-metric-libraries", "summary-metric-files", "summary-metric-storage", "summary-metric-duration", "summary-metric-icon", "summary-metric-value", "summary-metric-tooltip"]} wide>
+                <section className="panel stack statistic-layout-header-panel">
+                  <div className="panel-title-row panel-title-row-with-actions dashboard-statistic-title-row">
+                    <div className="page-heading-row"><House aria-hidden="true" className="page-heading-icon" /><h2>Dashboard</h2></div>
+                    <SummaryMetrics className="dashboard-statistic-metrics" items={[
+                      { id: "libraries", label: "Libraries", value: "4", description: "Number of libraries included in dashboard statistics.", Icon: Library },
+                      { id: "files", label: "Files", value: "12,482", description: "Number of analyzed media files across the libraries shown on the dashboard.", Icon: Files },
+                      { id: "storage", label: "Storage", value: "18.7 TB", description: "Total size of media files across the libraries shown on the dashboard.", Icon: HardDrive },
+                      { id: "duration", label: "Duration", value: "93d 13h", description: "Combined runtime of media files across the libraries shown on the dashboard.", Icon: Clock3 },
+                    ]} />
+                  </div>
+                </section>
+              </VariantCard>
+              <VariantCard title="Series stat cards" source="SeriesDetailPage" classes={["media-card", "metric-card", "stat-card"]}>
                 <div className="card-grid grid ui-elements-stat-grid">
-                  <StatCard label="Libraries" value="4" />
-                  <StatCard label="Files" value="12,482" tone="teal" />
-                  <StatCard label="Storage" value="18.7 TB" tone="blue" />
+                  <StatCard label="Seasons" value="3" />
+                  <StatCard label="Episodes" value="28" tone="teal" />
+                  <StatCard label="Storage" value="18.7 GB" tone="blue" />
                 </div>
               </VariantCard>
               <VariantCard title="Distribution list" source={`${dashboard} / ${libraryDetail}`} classes={["distribution-list", "distribution-item", "distribution-bar"]}>
@@ -2795,7 +2817,36 @@ export function UiElementsPage() {
                   <DuplicatePanelEmptyState message="No duplicate groups found yet." />
                 </AsyncPanel>
               </VariantCard>
-              <VariantCard title="File comparison rows" source="FileComparePage" classes={["file-compare-search-card", "file-compare-row", "has-difference", "is-identical"]} wide>
+              <VariantCard title="Collapsed Duplications beside Analyzed files" source={`${libraryDetail} > Duplications / Analyzed files`} classes={["statistic-layout-grid", "statistic-layout-panel-shell", "span-x-4", "is-collapsed-panel", "library-layout-panel-duplicates", "library-layout-panel-analyzed-files"]} wide>
+                <div className="media-grid statistic-layout-grid">
+                  <div
+                    className="statistic-layout-panel-shell span-x-4 library-layout-panel-duplicates is-collapsed-panel"
+                    style={{ "--statistic-panel-row-span": 1 } as React.CSSProperties}
+                  >
+                    <AsyncPanel
+                      title="Duplications"
+                      collapseState={{ collapsed: true, disabled: false, onToggle: () => undefined }}
+                    >
+                      <DuplicatePanelEmptyState message="No duplicate groups found yet." />
+                    </AsyncPanel>
+                  </div>
+                  <div
+                    className="statistic-layout-panel-shell span-x-4 library-layout-panel-analyzed-files"
+                    style={{ "--statistic-panel-row-span": 4, "--collapsed-panel-offset-count": 1 } as React.CSSProperties}
+                  >
+                    <section className="panel">
+                      <div className="panel-title-row"><h2>Analyzed files</h2></div>
+                      <div className="media-data-table" role="table">
+                        <div className="media-data-row" role="row">
+                          <div className="media-data-cell media-file-cell" role="cell">Arrival.2016.mkv</div>
+                          <div className="media-data-cell" role="cell">2.1 GB</div>
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </div>
+              </VariantCard>
+              <VariantCard title="File comparison rows and search results" source="FileComparePage" classes={["file-compare-search-card", "file-compare-search-results", "file-compare-search-result", "file-compare-search-result-main", "file-compare-search-result-meta", "file-compare-row", "has-difference", "is-identical"]} wide>
                 <div className="file-compare-page">
                   <div className="panel-title-row panel-title-row-with-actions">
                     <div className="page-heading-row">

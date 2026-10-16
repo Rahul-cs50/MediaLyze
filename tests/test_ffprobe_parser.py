@@ -1,3 +1,5 @@
+import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -112,6 +114,71 @@ def test_normalize_ffprobe_payload_extracts_streams() -> None:
     assert normalized.audio_streams[0].language == "en"
     assert normalized.subtitle_streams[0].language == "de"
     assert normalized.subtitle_streams[0].subtitle_type == "text"
+
+
+@pytest.mark.parametrize("pix_fmt,expected", [
+    ("yuv420p", 8), ("yuvj422p", 8), ("yuva444p", 8),
+    ("nv12", 8), ("nv21", 8), ("nv16", 8), ("nv24", 8),
+    ("yuyv422", 8), ("uyvy422", 8), ("rgb24", 8), ("bgra", 8),
+    ("gbrp", 8), ("gbrap", 8), ("gray", 8), ("ya8", 8),
+    ("yuv420p9le", 9), ("yuv420p10le", 10), ("yuv420p10be", 10),
+    ("yuv422p12le", 12), ("yuv444p14be", 14), ("yuv444p16le", 16),
+    ("yuva422p10le", 10), ("gbrp10le", 10), ("gbrap12be", 12),
+    ("gray10le", 10), ("gray16be", 16),
+    ("p010le", 10), ("p012le", 12), ("p016le", 16),
+    ("p210le", 10), ("p216be", 16), ("p410le", 10),
+    ("rgb48le", 16), ("bgr48be", 16), ("rgba64le", 16), ("ya16be", 16),
+    # Unknown/hardware formats and mixed component depths must not be guessed.
+    ("unknown10le", None), ("yuv420p99le", None), ("cuda", None),
+    ("rgb565le", None), ("", None), (None, None),
+])
+def test_video_bit_depth_falls_back_to_known_pixel_formats(pix_fmt, expected) -> None:
+    payload = {"streams": [{"codec_type": "video", "pix_fmt": pix_fmt}]}
+    assert normalize_ffprobe_payload(payload).video_streams[0].bit_depth == expected
+
+
+@pytest.mark.parametrize("fields,expected", [
+    ({"bits_per_raw_sample": "12", "bits_per_sample": "8"}, 12),
+    ({"bits_per_raw_sample": "8"}, 8),
+    ({"bits_per_sample": "16"}, 16),
+    ({"bits_per_raw_sample": "0", "bits_per_sample": "12"}, 12),
+    ({"bits_per_raw_sample": "N/A", "bits_per_sample": "12"}, 12),
+    ({"bits_per_raw_sample": "invalid", "bits_per_sample": "12"}, 12),
+    ({"bits_per_raw_sample": "0", "bits_per_sample": 0}, 10),
+    ({"bits_per_raw_sample": -1}, 10),
+])
+def test_video_bit_depth_prefers_positive_explicit_values(fields, expected) -> None:
+    payload = {"streams": [{"codec_type": "video", "pix_fmt": "yuv420p10le", **fields}]}
+    assert normalize_ffprobe_payload(payload).video_streams[0].bit_depth == expected
+
+
+def test_video_bit_depth_does_not_guess_from_codec_profile_or_hdr_or_change_audio() -> None:
+    payload = {"streams": [
+        {"codec_type": "video", "codec_name": "hevc", "profile": "Main 10", "color_transfer": "smpte2084"},
+        {"codec_type": "audio", "codec_name": "aac", "bits_per_sample": 0, "pix_fmt": "yuv420p10le"},
+        {"codec_type": "audio", "codec_name": "flac", "bits_per_raw_sample": "24"},
+    ]}
+    normalized = normalize_ffprobe_payload(payload)
+    assert normalized.video_streams[0].bit_depth is None
+    assert normalized.video_streams[0].hdr_type == "HDR10"
+    assert [stream.bit_depth for stream in normalized.audio_streams] == [None, 24]
+
+
+@pytest.mark.skipif(shutil.which("ffprobe") is None, reason="ffprobe is not installed")
+def test_pixel_format_fallback_agrees_with_ffmpeg_component_depths() -> None:
+    # Bits per pixel is not component depth: e.g. yuv420p10le uses 15 bpp.
+    payload = json.loads(subprocess.check_output(
+        [shutil.which("ffprobe"), "-v", "error", "-show_pixel_formats", "-of", "json"],
+        timeout=30,
+    ))
+    recognized = 0
+    for pixel_format in payload["pixel_formats"]:
+        stream = {"codec_type": "video", "pix_fmt": pixel_format["name"]}
+        bit_depth = normalize_ffprobe_payload({"streams": [stream]}).video_streams[0].bit_depth
+        if bit_depth is not None:
+            assert {component["bit_depth"] for component in pixel_format["components"]} == {bit_depth}, pixel_format["name"]
+            recognized += 1
+    assert recognized > 50
 
 
 def test_normalize_ffprobe_payload_reads_stream_language_tag_variants() -> None:

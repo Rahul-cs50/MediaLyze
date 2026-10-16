@@ -1,4 +1,4 @@
-"""Refresh compact IANA language subtags used by stream and sidecar detection.
+"""Refresh compact IANA language and region subtags used by stream and sidecar detection.
 
 Source: https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
 The same generated JSON is installed with the backend and bundled by Vite.
@@ -21,6 +21,7 @@ def main() -> None:
         registry = response.read().decode("utf-8")
     date = registry.splitlines()[0].removeprefix("File-Date: ")
     languages: set[str] = set()
+    regions: set[str] = set()
     preferred: dict[str, str] = {}
     for record in registry.split("%%"):
         fields: dict[str, str] = {}
@@ -28,9 +29,13 @@ def main() -> None:
             if ": " in line and not line.startswith(" "):
                 key, value = line.split(": ", 1)
                 fields[key] = value
-        if fields.get("Type") != "language" or "Subtag" not in fields:
+        subtag = fields.get("Subtag")
+        if fields.get("Type") == "region" and subtag:
+            regions.add(subtag.upper())
             continue
-        code = fields["Subtag"].lower()
+        if fields.get("Type") != "language" or not subtag:
+            continue
+        code = subtag.lower()
         languages.add(code)
         if fields.get("Preferred-Value"):
             preferred[code] = fields["Preferred-Value"].lower()
@@ -59,6 +64,7 @@ def main() -> None:
     payload = {
         "date": date,
         "languages": sorted(languages),
+        "regions": sorted(regions),
         "preferred": preferred,
         "aliases": aliases,
         "to_1": to_1,
@@ -71,7 +77,7 @@ def main() -> None:
         ROOT / "frontend/src/lib/language-registry.json",
     ):
         target.write_text(data, encoding="utf-8")
-    print(f"IANA {date}: {len(languages)} language subtags")
+    print(f"IANA {date}: {len(languages)} language and {len(regions)} region subtags")
 
 
 if __name__ == "__main__":

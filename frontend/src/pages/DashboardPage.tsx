@@ -1,5 +1,9 @@
 import {
+  Clock3,
+  Files,
+  HardDrive,
   House,
+  Library,
   PanelBottomClose,
   PanelLeftClose,
   PanelRightClose,
@@ -17,7 +21,7 @@ import { DistributionChartPanel } from "../components/DistributionChartPanel";
 import { DistributionList } from "../components/DistributionList";
 import { historyQuery } from "../lib/history-query";
 import { LibraryHistoryPanel, readHistoryRangeSelection } from "../components/LibraryHistoryPanel";
-import { StatCard } from "../components/StatCard";
+import { SummaryMetrics } from "../components/SummaryMetrics";
 import { StatisticPanelLayoutControls } from "../components/StatisticPanelLayoutControls";
 import { StatisticPanelLayoutMigrationNotice } from "../components/StatisticPanelLayoutMigrationNotice";
 import { useAppData } from "../lib/app-data";
@@ -630,11 +634,44 @@ export function DashboardPage() {
   return (
     <>
       <section className="panel stack statistic-layout-header-panel">
-        <div className="panel-title-row panel-title-row-with-actions">
+        <div className="panel-title-row panel-title-row-with-actions dashboard-statistic-title-row">
           <div className="page-heading-row">
             <House aria-hidden="true" className="page-heading-icon" />
             <h2>{t("nav.dashboard")}</h2>
           </div>
+          <SummaryMetrics
+            className="dashboard-statistic-metrics"
+            items={[
+              {
+                id: "libraries",
+                label: t("dashboard.libraries"),
+                value: String(dashboard?.totals.libraries ?? 0),
+                description: t("dashboard.librariesMetricTooltip"),
+                Icon: Library,
+              },
+              {
+                id: "files",
+                label: t("dashboard.files"),
+                value: String(dashboard?.totals.files ?? 0),
+                description: t("dashboard.filesMetricTooltip"),
+                Icon: Files,
+              },
+              {
+                id: "storage",
+                label: t("dashboard.storage"),
+                value: formatBytes(dashboard?.totals.storage_bytes ?? 0),
+                description: t("dashboard.storageMetricTooltip"),
+                Icon: HardDrive,
+              },
+              {
+                id: "duration",
+                label: t("dashboard.duration"),
+                value: formatDuration(dashboard?.totals.duration_seconds ?? 0),
+                description: t("dashboard.durationMetricTooltip"),
+                Icon: Clock3,
+              },
+            ]}
+          />
           <StatisticPanelLayoutControls
             availableDefinitions={availablePanelDefinitions}
             isEditing={isEditingLayout}
@@ -664,19 +701,6 @@ export function DashboardPage() {
                 addStatisticPanelLayoutItem("dashboard", current, statisticId, layoutOptions)
               )
             }
-          />
-        </div>
-        <div className="card-grid grid">
-          <StatCard label={t("dashboard.libraries")} value={String(dashboard?.totals.libraries ?? 0)} />
-          <StatCard label={t("dashboard.files")} value={String(dashboard?.totals.files ?? 0)} tone="teal" />
-          <StatCard
-            label={t("dashboard.storage")}
-            value={formatBytes(dashboard?.totals.storage_bytes ?? 0)}
-            tone="blue"
-          />
-          <StatCard
-            label={t("dashboard.duration")}
-            value={formatDuration(dashboard?.totals.duration_seconds ?? 0)}
           />
         </div>
         <StatisticPanelLayoutMigrationNotice scope="dashboard" issues={layoutMigrationIssues} />

@@ -25,12 +25,13 @@ logger = logging.getLogger("uvicorn.error")
 
 class JsonGZipResponder(GZipResponder):
     async def send_with_compression(self, message: Message) -> None:
-        await super().send_with_compression(message)
-        if message["type"] != "http.response.start":
+        if message["type"] == "http.response.start":
+            content_type = Headers(raw=message["headers"]).get("content-type", "")
+            self.content_type_is_excluded = not content_type.startswith("application/json")
+        if self.content_type_is_excluded:
+            await self.send(message)
             return
-        content_type = Headers(raw=message["headers"]).get("content-type", "")
-        if not content_type.startswith("application/json"):
-            self.content_type_is_excluded = True
+        await super().send_with_compression(message)
 
 
 class JsonGZipMiddleware:

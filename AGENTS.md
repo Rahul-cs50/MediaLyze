@@ -340,7 +340,10 @@ ass
 ssa
 sub
 idx
+vtt
 ```
+
+VTT sidecars retain `vtt` as their stored format; compatibility checks treat `vtt` and `webvtt` as equivalent.
 
 Stored fields include:
 
@@ -606,6 +609,12 @@ Frontend design decision history:
 * Record a decision when a design becomes canonical, replaces or rejects a product-wide pattern, or leaves intentional exceptions after a migration. Keep entries dated and concise; do not record every local spacing tweak.
 * Each entry should include the decision, rationale, canonical implementation and catalog references, deprecated selectors or patterns, migration scope, status, and remaining intentional exceptions.
 * Update the entry when the canonical pattern or migration status changes. The history must not keep legacy CSS alive; after migration, retain only identifiers needed to explain intentional exceptions.
+
+### 2026-10-14 — Share compact summary metric pills across page headers
+
+* Decision: Dashboard and Library Detail place icon-and-value metric pills beside their headings, with localized hover explanations. The library path appears in the storage metric tooltip. Collapsed Duplications panels keep the same grid gap before Analyzed files as expanded panels.
+* Canonical references: `SummaryMetrics.tsx`, `.summary-metrics`, `.summary-metric`, the Dashboard and Library Detail header examples in `/ui-elements`, and the statistic layout grid in `medialyze.css`.
+* Migration: dashboard summary cards and library-local metric markup now use the shared component; retired `.library-statistic-metric*` selectors and the collapsed-only Analyzed files margin. The existing `StatCard` remains in use on Series Detail. Status: active.
 
 ### 2026-10-02 — Compact table scores and left-aligned media groups
 
@@ -1170,6 +1179,8 @@ Current repository layout includes:
 * `docker/docker-compose.yaml`
 * `docker/env.example`
 * `docker/entrypoint.sh`
+
+The Docker runtime installs Python dependencies from `uv.lock`; keep it synchronized with `pyproject.toml`.
 
 Hardware portability invariant:
 

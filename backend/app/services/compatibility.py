@@ -32,6 +32,20 @@ def _key(value: str | None) -> str:
     return (value or "").strip().lower().replace("-", "").replace("_", "")
 
 
+def _subtitle_format_keys(value: str | None) -> set[str]:
+    normalized = _key(value)
+    if normalized in {"vtt", "webvtt"}:
+        return {"vtt", "webvtt"}
+    return {normalized}
+
+
+def _subtitle_format_candidates(value: str | None) -> tuple[str, ...]:
+    normalized = _key(value)
+    if normalized in {"vtt", "webvtt"}:
+        return ("webvtt", "vtt")
+    return (normalized,)
+
+
 def _finding(
     code: str,
     severity: FindingSeverity,
@@ -126,7 +140,10 @@ def _rule_matches(rule: SoftwareCompatibilityRule, file, stream=None, subtitle_f
         codec = getattr(stream, "codec", None) if stream is not None else None
         if _key(codec) not in {_key(item) for item in match.audio_codecs}:
             return False
-    if match.subtitle_formats and _key(subtitle_format) not in {_key(item) for item in match.subtitle_formats}:
+    if match.subtitle_formats and not any(
+        _subtitle_format_keys(subtitle_format) & _subtitle_format_keys(item)
+        for item in match.subtitle_formats
+    ):
         return False
     if match.video_profiles:
         if _key(getattr(stream, "profile", None)) not in {_key(item) for item in match.video_profiles}:
@@ -165,6 +182,25 @@ def _software_capability(mapping: dict[str, SoftwareCapability], value: str | No
 def _hardware_support(mapping, value: str | None):
     wanted = _key(value)
     return next((support for key, support in mapping.items() if _key(key) == wanted), False)
+
+
+def _subtitle_software_capability(
+    mapping: dict[str, SoftwareCapability], value: str | None,
+) -> SoftwareCapability | None:
+    for candidate in _subtitle_format_candidates(value):
+        capability = _software_capability(mapping, candidate)
+        if capability is not None:
+            return capability
+    return None
+
+
+def _subtitle_hardware_support(mapping, value: str | None):
+    for candidate in _subtitle_format_candidates(value):
+        wanted = _key(candidate)
+        for key, support in mapping.items():
+            if _key(key) == wanted:
+                return support
+    return False
 
 
 def _evaluate_container(file, hardware: HardwareProfile, software: SoftwareProfile):
@@ -302,8 +338,8 @@ def _evaluate_subtitles(file, hardware: HardwareProfile, software: SoftwareProfi
         if not subtitle_format:
             findings.append(_finding("metadata_unknown", FindingSeverity.warning, "metadata", "Subtitle format is unknown.", stream_index=stream_index))
             continue
-        sw = _software_capability(software.subtitles, subtitle_format)
-        hw = _hardware_support(hardware.subtitles, subtitle_format)
+        sw = _subtitle_software_capability(software.subtitles, subtitle_format)
+        hw = _subtitle_hardware_support(hardware.subtitles, subtitle_format)
         rule = _matching_rule(software, "subtitle", file, None, subtitle_format)
         if rule:
             status = _software_status(rule.mode, "subtitle" if rule.subtitle_action == "burn_in" else "audio", software.server_fallback)

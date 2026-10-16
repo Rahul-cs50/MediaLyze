@@ -38,9 +38,9 @@ Library types control discovery and some UI behavior:
 
 | Kind | Extensions |
 |---|---|
-| video | `.mkv`, `.mp4`, `.avi`, `.mov`, `.m4v`, `.ts`, `.m2ts`, `.wmv` |
+| video | `.mkv`, `.mp4`, `.avi`, `.mov`, `.m4v`, `.ts`, `.m2ts`, `.wmv`, `.webm` |
 | audio | `.mp3`, `.flac`, `.m4b`, `.m4a`, `.aac`, `.aa`, `.aax`, `.ogg`, `.oga`, `.opus`, `.wav`, `.wma`, `.aiff`, `.aif`, `.alac`, `.mka`, `.ape` |
-| external subtitles | `.srt`, `.ass`, `.ssa`, `.sub`, `.idx` |
+| external subtitles | `.srt`, `.ass`, `.ssa`, `.sub`, `.idx`, `.vtt` |
 
 These sets are defined in `backend/app/core/config.py`. Accepting an extension does not guarantee decodable media; `.aa`/`.aax` may be DRM-protected and MediaLyze does not decrypt Audible DRM.
 
@@ -146,7 +146,17 @@ Transcoding stream language codes are configured together for video, audio, and 
 | subtitle type (`text`, `image`, `null`) | yes | no |
 | relative sidecar path | no | yes |
 
-Supported sidecar extensions are `.srt`, `.ass`, `.ssa`, `.sub`, and `.idx`.
+Supported sidecar extensions are `.srt`, `.ass`, `.ssa`, `.sub`, `.idx`, and `.vtt`.
+External WebVTT sidecars retain the filename extension as `vtt`; compatibility
+checks accept `vtt` and `webvtt` as equivalent format names.
+
+Sidecar filenames can provide a language tag as a suffix. Adjacent recognized
+language and BCP 47 region subtags are combined in either order, so
+`Movie.BR.pt.srt` and `Movie.pt.BR.srt` are both recorded as `pt-BR`. Existing
+hyphenated or underscored tags such as `pt-BR` and `pt_BR` remain supported.
+When a two-letter token is also a language code, its uppercase spelling marks
+it as a region. If a token pair is still ambiguous, detection keeps the existing
+first-recognized language behavior instead of guessing.
 
 ## 4) Statistics, Panels, And Tables
 
@@ -299,6 +309,7 @@ External-source and playback sections depend on matched capable connectors. Sync
 | ffprobe fails | file is marked failed and appears in scan failure samples |
 | Analysis failure diagnostics | classified as empty file, missing MP4 metadata, invalid container/media, unavailable file, permission/I/O error, probe timeout/output limit, unrecognized stream, probable Audible DRM, internal processing error, or other ffprobe error; technical details are retained |
 | Numeric metadata cannot be parsed | stored as `null` where parsing fails |
+| Video sample-depth fields are missing, invalid, or zero | falls back to the component depth of known YUV, NV, planar RGB, grayscale, and packed RGB pixel formats; unknown formats remain `null`. Positive `bits_per_raw_sample` / `bits_per_sample` values take precedence. Existing files need reanalysis (for example, a full scan) to update stored values; incremental scan selection is unchanged. |
 | `bits_per_sample=0` for lossy audio | treated as unknown bit depth |
 | Unsupported sidecar subtitle extension | ignored |
 | Sidecar subtitle does not match the media stem / prefix | ignored |
