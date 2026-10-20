@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## vUnreleased
 
+### 🐛 Bug fixes
+
+- Fix the server error when a library gets a second folder with the same name as an existing one; the new folder's alias gets a numbered suffix ([#197](https://github.com/frederikemmer/MediaLyze/issues/197)).
+
 ## v0.19.2
 
 This patch release expands video and subtitle recognition, improves metadata parsing, and resolves several dashboard, library, and file comparison issues.
